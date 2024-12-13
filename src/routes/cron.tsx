@@ -1,5 +1,9 @@
-import { swrFetcher } from "@/api/api";
-import { Checkbox } from "@/components/ui/checkbox";
+import { swrFetcher } from "@/api/api"
+import { deleteCron, runCron } from "@/api/cron"
+import { ActionButtonGroup } from "@/components/action-button-group"
+import { CronCard } from "@/components/cron"
+import { HeaderButtonGroup } from "@/components/header-button-group"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
     Table,
     TableBody,
@@ -7,32 +11,27 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { ModelCron } from "@/types";
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import useSWR from "swr";
-import { useEffect, useMemo } from "react";
-import { ActionButtonGroup } from "@/components/action-button-group";
-import { HeaderButtonGroup } from "@/components/header-button-group";
-import { toast } from "sonner";
-import { deleteCron, runCron } from "@/api/cron";
-import { CronCard } from "@/components/cron";
-import { cronTypes } from "@/types";
-import { IconButton } from "@/components/xui/icon-button";
-
-import { useTranslation } from "react-i18next";
+} from "@/components/ui/table"
+import { IconButton } from "@/components/xui/icon-button"
+import { ModelCron } from "@/types"
+import { cronTypes } from "@/types"
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { useEffect, useMemo } from "react"
+import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
+import useSWR from "swr"
 
 export default function CronPage() {
-    const { t } = useTranslation();
-    const { data, mutate, error, isLoading } = useSWR<ModelCron[]>("/api/v1/cron", swrFetcher);
+    const { t } = useTranslation()
+    const { data, mutate, error, isLoading } = useSWR<ModelCron[]>("/api/v1/cron", swrFetcher)
 
     useEffect(() => {
         if (error)
             toast(t("Error"), {
                 description: t("Results.ErrorFetchingResource", { error: error.message }),
-            });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [error]);
+            })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [error])
 
     const columns: ColumnDef<ModelCron>[] = [
         {
@@ -41,7 +40,7 @@ export default function CronPage() {
                 <Checkbox
                     checked={
                         table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
+                        (table.getIsSomePageRowsSelected() && "indeterminate")
                     }
                     onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
                     aria-label="Select all"
@@ -66,8 +65,8 @@ export default function CronPage() {
             header: t("Name"),
             accessorKey: "name",
             cell: ({ row }) => {
-                const s = row.original;
-                return <div className="max-w-32 whitespace-normal break-words">{s.name}</div>;
+                const s = row.original
+                return <div className="max-w-32 whitespace-normal break-words">{s.name}</div>
             },
         },
         {
@@ -84,8 +83,8 @@ export default function CronPage() {
             header: t("Command"),
             accessorKey: "command",
             cell: ({ row }) => {
-                const s = row.original;
-                return <div className="max-w-48 whitespace-normal break-words">{s.command}</div>;
+                const s = row.original
+                return <div className="max-w-48 whitespace-normal break-words">{s.command}</div>
             },
         },
         {
@@ -103,24 +102,24 @@ export default function CronPage() {
             accessorKey: "cover",
             accessorFn: (row) => row.cover,
             cell: ({ row }) => {
-                const s = row.original;
+                const s = row.original
                 return (
                     <div className="max-w-48 whitespace-normal break-words">
                         {(() => {
                             switch (s.cover) {
-                            case 0: {
-                                return <span>Ignore All</span>;
-                            }
-                            case 1: {
-                                return <span>Cover All</span>;
-                            }
-                            case 2: {
-                                return <span>On alert</span>;
-                            }
+                                case 0: {
+                                    return <span>Ignore All</span>
+                                }
+                                case 1: {
+                                    return <span>Cover All</span>
+                                }
+                                case 2: {
+                                    return <span>On alert</span>
+                                }
                             }
                         })()}
                     </div>
-                );
+                )
             },
         },
         {
@@ -133,8 +132,12 @@ export default function CronPage() {
             accessorKey: "lastExecution",
             accessorFn: (row) => row.last_executed_at,
             cell: ({ row }) => {
-                const s = row.original;
-                return <div className="max-w-24 whitespace-normal break-words">{s.last_executed_at}</div>;
+                const s = row.original
+                return (
+                    <div className="max-w-24 whitespace-normal break-words">
+                        {s.last_executed_at}
+                    </div>
+                )
             },
         },
         {
@@ -146,7 +149,7 @@ export default function CronPage() {
             id: "actions",
             header: t("Actions"),
             cell: ({ row }) => {
-                const s = row.original;
+                const s = row.original
                 return (
                     <ActionButtonGroup
                         className="flex gap-2"
@@ -158,40 +161,40 @@ export default function CronPage() {
                                 icon="play"
                                 onClick={async () => {
                                     try {
-                                        await runCron(s.id);
+                                        await runCron(s.id)
                                     } catch (e) {
-                                        console.error(e);
+                                        console.error(e)
                                         toast(t("Error"), {
                                             description: t("Results.UnExpectedError"),
-                                        });
-                                        await mutate();
-                                        return;
+                                        })
+                                        await mutate()
+                                        return
                                     }
                                     toast(t("Success"), {
                                         description: t("Results.TaskTriggeredSuccessfully"),
-                                    });
-                                    await mutate();
+                                    })
+                                    await mutate()
                                 }}
                             />
                             <CronCard mutate={mutate} data={s} />
                         </>
                     </ActionButtonGroup>
-                );
+                )
             },
         },
-    ];
+    ]
 
     const dataCache = useMemo(() => {
-        return data ?? [];
-    }, [data]);
+        return data ?? []
+    }, [data])
 
     const table = useReactTable({
         data: dataCache,
         columns,
         getCoreRowModel: getCoreRowModel(),
-    });
+    })
 
-    const selectedRows = table.getSelectedRowModel().rows;
+    const selectedRows = table.getSelectedRowModel().rows
 
     return (
         <div className="px-8">
@@ -218,9 +221,12 @@ export default function CronPage() {
                                     <TableHead key={header.id} className="text-sm">
                                         {header.isPlaceholder
                                             ? null
-                                            : flexRender(header.column.columnDef.header, header.getContext())}
+                                            : flexRender(
+                                                  header.column.columnDef.header,
+                                                  header.getContext(),
+                                              )}
                                     </TableHead>
-                                );
+                                )
                             })}
                         </TableRow>
                     ))}
@@ -252,5 +258,5 @@ export default function CronPage() {
                 </TableBody>
             </Table>
         </div>
-    );
+    )
 }
